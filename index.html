@@ -124,15 +124,32 @@
   .confetti { position: absolute; top: -10px; width: 10px; height: 14px; z-index: 6; animation: fall 2.6s linear forwards; }
   @keyframes fall { to { transform: translateY(440px) rotate(540deg); opacity: .2; } }
 
-  #toast { position: absolute; top: 56px; right: 12px; z-index: 9; background: rgba(29,53,87,.85); color: #fff;
-    padding: 6px 10px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity .3s; }
-  #toast.show { opacity: 1; }
-
   .controls { display: flex; justify-content: center; margin: 18px 0 30px; }
   button { font-size: 20px; font-weight: bold; padding: 12px 34px; border: none; border-radius: 40px; background: #ff6b6b; color: #fff;
     cursor: pointer; box-shadow: 0 6px 0 #c44d4d; }
   button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c44d4d; }
-  .hint { font-size: 14px; text-align: center; margin-top: 10px; color: #457b9d; }
+  /* PC: más grande y con menos bordes */
+  @media (min-width: 900px) {
+    header, main { max-width: 1200px; padding: 6px; }
+    .stage { height: min(82vh, 760px); border-radius: 18px; }
+    #girl { width: 200px; }
+    #girl svg, .dog svg { width: 100%; height: auto; }
+    .dog { width: 160px; }
+    #ball, #ball svg { width: 66px; height: 66px; }
+    #cap { font-size: 20px; }
+    #sub { font-size: 34px; }
+  }
+
+  /* Móvil en vertical */
+  @media (max-width: 600px) and (orientation: portrait) {
+    header, main { padding: 8px; }
+    h1 { font-size: 28px; }
+    .stage { height: auto; aspect-ratio: 9 / 16; border-radius: 16px; }
+    #girl { width: 170px; }
+    #girl svg, .dog svg { width: 100%; height: auto; }
+    .dog { width: 135px; }
+    #ball, #ball svg { width: 54px; height: 54px; }
+  }
 </style>
 </head>
 <body>
@@ -190,14 +207,12 @@
     <div id="cap">Una tarde bonita en el parque. Mely juega con sus perros: Rocky y Toby.</div>
     <div id="sec"></div>
     <div id="sub"></div>
-    <div id="toast"></div>
   </div>
 
   <div class="controls">
     <audio id="audio" src="cancion.mp3" preload="auto"></audio>
     <button id="playBtn">▶ Reproducir</button>
   </div>
-  <p class="hint">Teclas: <b>[</b> atrasa los subtítulos 0.5 s, <b>]</b> los adelanta 0.5 s. <b>M</b> marca la línea actual. <b>C</b> copia los tiempos.</p>
 </main>
 
 <script>
@@ -268,11 +283,8 @@
   const cap = document.getElementById("cap");
   const subEl = document.getElementById("sub");
   const secEl = document.getElementById("sec");
-  const toastEl = document.getElementById("toast");
 
   const AUDIO_START = 0; // la canción empieza desde 0
-  let offset = 0;        // ajuste de sincronía en segundos (teclas [ y ])
-  let markIdx = 0;       // próxima línea a marcar con M
 
   function sceneT(i) { const s = SCENES[i]; return s.li !== undefined ? LINES[s.li].t : s.t; }
   let audioActive = false, audioFailed = false;
@@ -284,16 +296,9 @@
     if (hasAudio()) return Math.max(0, audio.currentTime - AUDIO_START);
     return demoPlaying ? demoOffset + (performance.now() - demoStart) / 1000 : demoOffset;
   }
-  function currentTime() { return rawTime() + offset; }
+  function currentTime() { return rawTime(); }
 
   let lastLine = -2, lastScene = -1;
-
-  function toast(msg) {
-    toastEl.textContent = msg;
-    toastEl.classList.add("show");
-    clearTimeout(toast.h);
-    toast.h = setTimeout(() => toastEl.classList.remove("show"), 1400);
-  }
 
   function spawnNote() {
     const n = document.createElement("div");
@@ -403,26 +408,6 @@
   audio.addEventListener("error", () => { audioFailed = true; audioActive = false; });
   audio.addEventListener("loadedmetadata", () => {
     if (audio.currentTime < AUDIO_START) audio.currentTime = AUDIO_START;
-  });
-
-  // Teclas de sincronía
-  document.addEventListener("keydown", (e) => {
-    if (e.target && e.target.tagName === "INPUT") return;
-    if (e.key === "[") { offset -= 0.5; toast(`Sincronía: ${offset.toFixed(1)} s`); lastLine = -2; update(); }
-    else if (e.key === "]") { offset += 0.5; toast(`Sincronía: ${offset.toFixed(1)} s`); lastLine = -2; update(); }
-    else if (e.key === "m" || e.key === "M") {
-      if (markIdx < LINES.length) {
-        LINES[markIdx].t = Math.round(currentTime() * 10) / 10;
-        toast(`Línea ${markIdx + 1} marcada en ${LINES[markIdx].t.toFixed(1)} s`);
-        markIdx++;
-        lastLine = -2; update();
-      } else toast("Todas las líneas están marcadas");
-    }
-    else if (e.key === "c" || e.key === "C") {
-      const txt = LINES.map(l => `${l.t.toFixed(1)}  ${l.text}`).join("\n");
-      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("Tiempos copiados"), () => toast("No pude copiar"));
-      console.log(txt);
-    }
   });
 
   update();
