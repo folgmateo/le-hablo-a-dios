@@ -63,6 +63,8 @@
   .char { position: absolute; transition: left 1.2s ease-in-out; z-index: 4; }
   #girl { width: 140px; bottom: 16%; }
   .dog  { width: 110px; bottom: 14%; z-index: 3; }
+  #d1 { width: 130px; } /* Tojil, el más grande */
+  .dog svg { width: 100%; height: auto; }
   .dog svg, #girl svg { animation: idle 2.4s ease-in-out infinite; }
   @keyframes idle { 50% { transform: translateY(-4px); } }
   .tail { transform-box: fill-box; transform-origin: 0% 100%; animation: wag .35s ease-in-out infinite alternate; }
@@ -134,7 +136,8 @@
     .stage { height: min(82vh, 760px); border-radius: 18px; }
     #girl { width: 200px; }
     #girl svg, .dog svg { width: 100%; height: auto; }
-    .dog { width: 160px; }
+    .dog { width: 150px; }
+    #d1 { width: 190px; }
     #ball, #ball svg { width: 66px; height: 66px; }
     #cap { font-size: 20px; }
     #sub { font-size: 34px; }
@@ -147,7 +150,8 @@
     .stage { height: auto; aspect-ratio: 9 / 16; border-radius: 16px; }
     #girl { width: 170px; }
     #girl svg, .dog svg { width: 100%; height: auto; }
-    .dog { width: 135px; }
+    .dog { width: 125px; }
+    #d1 { width: 160px; }
     #ball, #ball svg { width: 54px; height: 54px; }
   }
 </style>
@@ -204,7 +208,7 @@
       </svg>
     </div>
 
-    <div id="cap">Una tarde bonita en el parque. Mely juega con sus perros: Rocky y Toby.</div>
+    <div id="cap">Una tarde bonita en el parque. Mely juega con sus perros: Tojil y Zeus.</div>
     <div id="sec"></div>
     <div id="sub"></div>
   </div>
@@ -268,9 +272,9 @@
 
   // Escenas ligadas a una línea (li = índice de la línea)
   const SCENES = [
-    { t: 0,  id: "park",  cap: "Una tarde bonita en el parque. Mely juega con sus perros: Rocky y Toby." },
+    { t: 0,  id: "park",  cap: "Una tarde bonita en el parque. Mely juega con sus perros: Tojil y Zeus." },
     { li: 0,  id: "bench", cap: "Mely se sienta bajo el árbol y habla con Dios." },
-    { li: 4,  id: "court", cap: "¡Hora de jugar voleibol! Toby salta por la pelota." },
+    { li: 4,  id: "court", cap: "¡Hora de jugar voleibol! Zeus salta por la pelota." },
     { li: 10, id: "lake",  cap: "Al atardecer, Mely ora junto al lago." },
     { li: 14, id: "court", cap: "¡Otra vez a jugar y a cantar con sus amigos!" },
     { li: 20, id: "night", cap: "De noche, Mely mira las estrellas y sabe que Dios la escucha." },
