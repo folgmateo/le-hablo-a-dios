@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le hablo a Dios</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif; min-height: 100vh;
+    background: #eaf8ff; color: #1d3557;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  header, main { width: 100%; max-width: 720px; padding: 14px; }
+  h1 { text-align: center; font-size: clamp(26px, 6vw, 42px); color: #ff6b6b;
+    text-shadow: 2px 3px 0 #fff; animation: pop 1.2s ease-out both; }
+  @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  /* ESCENARIO */
+  .stage { position: relative; width: 100%; height: 420px; border-radius: 24px; overflow: hidden;
+    box-shadow: 0 8px 24px rgba(29,53,87,.2); }
+  .layer { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; }
+  [data-scene="park"]  .l-park,
+  [data-scene="bench"] .l-bench,
+  [data-scene="court"] .l-court,
+  [data-scene="lake"]  .l-lake,
+  [data-scene="night"] .l-night,
+  [data-scene="party"] .l-party { opacity: 1; }
+
+  .l-park  { background: linear-gradient(#8fd8ff 0%, #d9f7b0 58%, #7cc96a 58%); }
+  .l-bench { background: linear-gradient(#ffd38a 0%, #ffeccc 55%, #9bd770 55%); }
+  .l-court { background: linear-gradient(#bfeaff 0%, #e8f9ff 50%, #f3c27a 50%); }
+  .l-lake  { background: linear-gradient(#ff9a76 0%, #ffd1a6 42%, #3aa0d6 42%, #1f6fa3 100%); }
+  .l-night { background: linear-gradient(#0b1d3a, #23467a); }
+  .l-party { background: linear-gradient(90deg, #ffadad, #ffd6a5, #fdffb6, #caffbf, #9bf6ff, #bdb2ff, #ffc6ff); }
+
+  .sun { position: absolute; top: 18px; right: 16%; width: 70px; height: 70px; border-radius: 50%;
+    background: #ffd60a; box-shadow: 0 0 40px #ffd60a; animation: pulse 3s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.08); } }
+  .court { position: absolute; left: 8%; right: 8%; bottom: 10%; height: 36%; background: #f29e4c; border: 4px solid #fff; }
+  .net { position: absolute; left: 50%; bottom: 10%; width: 5px; height: 26%; background: #fff; transform: translateX(-50%); }
+  .tree { position: absolute; right: 8%; top: 8%; width: 130px; height: 130px; border-radius: 50%; background: #4caf50; }
+  .trunk { position: absolute; right: calc(8% + 60px); top: 50%; width: 12px; height: 40%; background: #8d5524; }
+  .bench { position: absolute; left: 14%; bottom: 30%; width: 120px; height: 14px; background: #a0522d; border-radius: 4px; }
+  .wave { position: absolute; left: 0; right: 0; top: 52%; height: 6px; background: rgba(255,255,255,.5); }
+  .l-night::before { content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(#fff 1.6px, transparent 2px), radial-gradient(#fff 1px, transparent 1.5px);
+    background-size: 90px 80px, 47px 61px; animation: twinkle 2.6s ease-in-out infinite alternate; }
+  @keyframes twinkle { from { opacity: .35; } to { opacity: 1; } }
+  .moon { position: absolute; top: 20px; right: 14%; width: 60px; height: 60px; border-radius: 50%; background: #fff7cc; box-shadow: 0 0 30px #fff7cc; }
+
+  /* NUBES */
+  .cloud { position: absolute; width: 150px; height: 56px; background: #fff; border-radius: 60px; opacity: .92;
+    animation: drift linear infinite; z-index: 2; top: 10%; }
+  .cloud::before, .cloud::after { content: ""; position: absolute; background: #fff; border-radius: 50%; }
+  .cloud::before { width: 75px; height: 75px; top: -32px; left: 18px; }
+  .cloud::after  { width: 56px; height: 56px; top: -22px; right: 22px; }
+  .cloud.c1 { animation-duration: 40s; }
+  .cloud.c2 { top: 30%; animation-duration: 55s; animation-delay: -20s; transform: scale(.7); }
+  @keyframes drift { from { left: -200px; } to { left: 110%; } }
+
+  /* PERSONAJES */
+  .char { position: absolute; transition: left 1.2s ease-in-out; z-index: 4; }
+  #girl { width: 140px; bottom: 16%; }
+  .dog  { width: 110px; bottom: 14%; z-index: 3; }
+  .dog svg, #girl svg { animation: idle 2.4s ease-in-out infinite; }
+  @keyframes idle { 50% { transform: translateY(-4px); } }
+  .tail { transform-box: fill-box; transform-origin: 0% 100%; animation: wag .35s ease-in-out infinite alternate; }
+  @keyframes wag { from { transform: rotate(-20deg); } to { transform: rotate(25deg); } }
+  .arm-l, .arm-r { transform-box: fill-box; transform-origin: 50% 0%; }
+  .gmouth { transform-box: fill-box; transform-origin: center; }
+
+  [data-scene="park"]  #girl { left: 10%; }
+  [data-scene="park"]  #d1 { left: 46%; } [data-scene="park"] #d2 { left: 60%; }
+  [data-scene="bench"] #girl { left: 40%; }
+  [data-scene="bench"] #d1 { left: 14%; } [data-scene="bench"] #d2 { left: 62%; }
+  [data-scene="court"] #girl { left: 22%; animation: jump .9s ease-in-out infinite alternate; }
+  [data-scene="court"] #d1 { left: 58%; } [data-scene="court"] #d2 { left: 70%; }
+  [data-scene="lake"]  #girl { left: 36%; }
+  [data-scene="lake"]  #d1 { left: 12%; } [data-scene="lake"] #d2 { left: 56%; }
+  [data-scene="night"] #girl { left: 40%; }
+  [data-scene="night"] #d1 { left: 14%; } [data-scene="night"] #d2 { left: 62%; }
+  [data-scene="party"] #girl { left: 38%; animation: jump .6s ease-in-out infinite alternate; }
+  [data-scene="party"] #d1 { left: 8%; } [data-scene="party"] #d2 { left: 22%; }
+  @keyframes jump { to { transform: translateY(-22px); } }
+
+  .playing .dog svg { animation: hop .45s ease-in-out infinite alternate; }
+  .playing #girl .arm-r { animation: wave .5s ease-in-out infinite alternate; }
+  .playing #girl .arm-l { animation: wave .5s ease-in-out infinite alternate-reverse; }
+  .playing .gmouth { animation: talk .35s ease-in-out infinite alternate; }
+  @keyframes hop { to { transform: translateY(-16px); } }
+  @keyframes wave { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
+  @keyframes talk { from { transform: scaleY(.6); } to { transform: scaleY(1.8); } }
+
+  /* PELOTA */
+  #ball { position: absolute; width: 46px; height: 46px; z-index: 5;
+    transition: left 1.2s ease-in-out, bottom 1.2s ease-in-out; animation: bounce 1.2s ease-in-out infinite alternate; }
+  #ball svg { width: 46px; height: 46px; }
+  @keyframes bounce { to { transform: translateY(-20px); } }
+  [data-scene="park"]  #ball { left: 30%; bottom: 44%; }
+  [data-scene="bench"] #ball { left: 64%; bottom: 30%; }
+  [data-scene="court"] #ball { left: 46%; bottom: 56%; animation-duration: .7s; }
+  [data-scene="lake"]  #ball { left: 24%; bottom: 48%; }
+  [data-scene="night"] #ball { left: 70%; bottom: 64%; }
+  [data-scene="party"] #ball { left: 46%; bottom: 62%; animation: bounce .5s ease-in-out infinite alternate; }
+
+  /* CAPTION DE LA HISTORIA (arriba) */
+  #cap { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6;
+    background: #fff; color: #1d3557; border-radius: 16px; padding: 8px 14px; font-size: 15px;
+    max-width: 88%; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,.15); transition: opacity .4s; }
+
+  /* SUBTÍTULOS SOBRE LA ANIMACIÓN */
+  #sub { position: absolute; left: 4%; right: 4%; bottom: 14px; z-index: 8; text-align: center;
+    font-size: clamp(20px, 4.2vw, 28px); font-weight: bold; color: #e63946; line-height: 1.25;
+    background: rgba(255,255,255,.92); border-radius: 18px; padding: 10px 14px; min-height: 58px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.2); }
+  #sub.pop { animation: subpop .35s ease-out; }
+  @keyframes subpop { from { transform: scale(.94); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+  #sec { position: absolute; left: 0; right: 0; bottom: 84px; z-index: 8; text-align: center; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+
+  .note { position: absolute; font-size: 28px; pointer-events: none; z-index: 7; animation: floatUp 2.2s ease-out forwards; }
+  @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-170px) rotate(20deg); opacity: 0; } }
+  .confetti { position: absolute; top: -10px; width: 10px; height: 14px; z-index: 6; animation: fall 2.6s linear forwards; }
+  @keyframes fall { to { transform: translateY(440px) rotate(540deg); opacity: .2; } }
+
+  #toast { position: absolute; top: 56px; right: 12px; z-index: 9; background: rgba(29,53,87,.85); color: #fff;
+    padding: 6px 10px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity .3s; }
+  #toast.show { opacity: 1; }
+
+  .controls { display: flex; justify-content: center; margin: 18px 0 30px; }
+  button { font-size: 20px; font-weight: bold; padding: 12px 34px; border: none; border-radius: 40px; background: #ff6b6b; color: #fff;
+    cursor: pointer; box-shadow: 0 6px 0 #c44d4d; }
+  button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c44d4d; }
+  .hint { font-size: 14px; text-align: center; margin-top: 10px; color: #457b9d; }
+</style>
+</head>
+<body>
+
+<header><h1>🎵 Le hablo a Dios 🎵</h1></header>
+
+<main>
+  <div class="stage" id="stage" data-scene="park">
+    <div class="layer l-park"><div class="sun"></div></div>
+    <div class="layer l-bench"><div class="sun"></div><div class="tree"></div><div class="trunk"></div><div class="bench"></div></div>
+    <div class="layer l-court"><div class="court"><div class="net"></div></div></div>
+    <div class="layer l-lake"><div class="wave"></div></div>
+    <div class="layer l-night"><div class="moon"></div></div>
+    <div class="layer l-party"></div>
+
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+
+    <div class="char" id="girl">
+      <svg viewBox="0 0 140 230" width="140" height="230">
+        <path d="M70 26 C30 26 22 60 22 92 C22 130 16 150 26 178 L114 178 C124 150 118 130 118 92 C118 60 110 26 70 26Z" fill="#f7d774" stroke="#d9a93b" stroke-width="2"/>
+        <path d="M44 132 Q70 124 96 132 L100 196 L40 196 Z" fill="#ff6b6b"/>
+        <rect x="42" y="190" width="56" height="18" rx="4" fill="#1d3557"/>
+        <rect x="52" y="206" width="13" height="22" rx="5" fill="#ffd7b5"/>
+        <rect x="75" y="206" width="13" height="22" rx="5" fill="#ffd7b5"/>
+        <rect class="arm-l" x="24" y="134" width="18" height="58" rx="9" fill="#ffd7b5"/>
+        <rect class="arm-r" x="98" y="134" width="18" height="58" rx="9" fill="#ffd7b5"/>
+        <rect x="62" y="110" width="16" height="22" fill="#ffd7b5"/>
+        <ellipse cx="70" cy="76" rx="30" ry="34" fill="#ffd7b5"/>
+        <path d="M40 66 Q42 36 70 34 Q98 36 100 66 Q90 52 70 50 Q52 52 40 66Z" fill="#f7d774"/>
+        <path d="M53 68 Q59 64 65 68" stroke="#b5813f" stroke-width="2" fill="none"/>
+        <path d="M75 68 Q81 64 87 68" stroke="#b5813f" stroke-width="2" fill="none"/>
+        <ellipse cx="59" cy="78" rx="4.5" ry="5.5" fill="#7b4a2a"/>
+        <ellipse cx="81" cy="78" rx="4.5" ry="5.5" fill="#7b4a2a"/>
+        <circle cx="60.5" cy="76" r="1.6" fill="#fff"/>
+        <circle cx="82.5" cy="76" r="1.6" fill="#fff"/>
+        <circle cx="50" cy="90" r="5" fill="#ff8fa3" opacity=".6"/>
+        <circle cx="90" cy="90" r="5" fill="#ff8fa3" opacity=".6"/>
+        <path class="gmouth" d="M62 92 Q70 100 78 92" stroke="#c94f5b" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="char dog" id="d1"></div>
+    <div class="char dog" id="d2"></div>
+
+    <div id="ball">
+      <svg viewBox="0 0 46 46">
+        <circle cx="23" cy="23" r="21" fill="#fff" stroke="#1d70c8" stroke-width="3"/>
+        <path d="M3 20 Q23 8 43 20" stroke="#1d70c8" stroke-width="3" fill="none"/>
+        <path d="M3 30 Q23 18 43 30" stroke="#f4a261" stroke-width="3" fill="none"/>
+        <path d="M14 3 Q23 23 14 43" stroke="#e63946" stroke-width="2.5" fill="none"/>
+      </svg>
+    </div>
+
+    <div id="cap">Una tarde bonita en el parque. Mely juega con sus perros: Rocky y Toby.</div>
+    <div id="sec"></div>
+    <div id="sub"></div>
+    <div id="toast"></div>
+  </div>
+
+  <div class="controls">
+    <audio id="audio" src="cancion.mp3" preload="auto"></audio>
+    <button id="playBtn">▶ Reproducir</button>
+  </div>
+  <p class="hint">Teclas: <b>[</b> atrasa los subtítulos 0.5 s, <b>]</b> los adelanta 0.5 s. <b>M</b> marca la línea actual. <b>C</b> copia los tiempos.</p>
+</main>
+
+<script>
+  function dogSVG(color) {
+    return `<svg viewBox="0 0 120 90" width="110" height="83" style="color:${color}">
+      <path class="tail" d="M98 44 Q116 22 108 8" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <ellipse cx="58" cy="60" rx="38" ry="20" fill="currentColor"/>
+      <rect x="30" y="70" width="11" height="16" rx="5" fill="currentColor"/>
+      <rect x="72" y="70" width="11" height="16" rx="5" fill="currentColor"/>
+      <circle cx="32" cy="40" r="22" fill="currentColor"/>
+      <ellipse cx="26" cy="20" rx="7" ry="9" fill="currentColor"/>
+      <ellipse cx="42" cy="20" rx="7" ry="9" fill="currentColor"/>
+      <circle cx="26" cy="36" r="4" fill="#fff"/>
+      <circle cx="26" cy="36" r="2.2" fill="#222"/>
+      <ellipse cx="14" cy="46" rx="5" ry="4" fill="#222"/>
+      <path d="M14 52 Q22 58 32 50" stroke="#222" stroke-width="2" fill="none"/>
+    </svg>`;
+  }
+  document.getElementById("d1").innerHTML = dogSVG("#6c7a89");
+  document.getElementById("d2").innerHTML = dogSVG("#7f8c99");
+
+  // Letra con tiempos (segundos) marcados por ti
+  const LINES = [
+    { s: "Estrofa 1", t: 0.0,  text: "Cuando tengo algo que decir," },
+    { s: null,        t: 4.8, text: "le hablo a Dios sin temor," },
+    { s: null,        t: 9.3, text: "Él me escucha con cariño," },
+    { s: null,        t: 14.6, text: "siempre atento a mi voz." },
+    { s: "Coro",      t: 18.1, text: "¡Con mi boca lo llamo!", chorus: true },
+    { s: null,        t: 23.7, text: "¡Con mi lengua lo alabo!", chorus: true },
+    { s: null,        t: 27.6, text: "¡Dios me escucha cuando hablo,", chorus: true },
+    { s: null,        t: 31.2, text: "y con alegría canto!", chorus: true },
+    { s: null,        t: 35.6, text: "¡Gracias, Dios, por escuchar,", chorus: true },
+    { s: null,        t: 43.5, text: "tu amor me hace cantar!", chorus: true },
+    { s: "Estrofa 2", t: 48.0, text: "Le pido ayuda con mi boca," },
+    { s: null,        t: 52.9, text: "le digo gracias con mi voz," },
+    { s: null,        t: 57.2, text: "y en mi lengua llena de alegría" },
+    { s: null,        t: 63.7, text: "brotan cantos de amor." },
+    { s: "Coro",      t: 68.3, text: "¡Con mi boca lo llamo!", chorus: true },
+    { s: null,        t: 73.3, text: "¡Con mi lengua lo alabo!", chorus: true },
+    { s: null,        t: 77.9, text: "¡Dios me escucha cuando hablo,", chorus: true },
+    { s: null,        t: 81.7, text: "y con alegría canto!", chorus: true },
+    { s: null,        t: 87.0, text: "¡Gracias, Dios, por escuchar,", chorus: true },
+    { s: null,        t: 93.6, text: "tu amor me hace cantar!", chorus: true },
+    { s: "Puente",    t: 97.2, text: "Dios nunca se cansa de oír," },
+    { s: null,        t: 99.7, text: "siempre está cerca de mí," },
+    { s: null,        t: 103.4, text: "cuando oro o cuando canto," },
+    { s: null,        t: 107.3, text: "sé que Él está aquí." },
+    { s: "Coro final", t: 111.4, text: "¡Con mi boca lo llamo!", chorus: true },
+    { s: null,        t: 116.4, text: "¡Con mi lengua lo alabo!", chorus: true },
+    { s: null,        t: 121.1, text: "¡Dios me escucha cuando hablo,", chorus: true },
+    { s: null,        t: 125.1, text: "y con alegría canto!", chorus: true },
+  ];
+
+  // Escenas ligadas a una línea (li = índice de la línea)
+  const SCENES = [
+    { t: 0,  id: "park",  cap: "Una tarde bonita en el parque. Mely juega con sus perros: Rocky y Toby." },
+    { li: 0,  id: "bench", cap: "Mely se sienta bajo el árbol y habla con Dios." },
+    { li: 4,  id: "court", cap: "¡Hora de jugar voleibol! Toby salta por la pelota." },
+    { li: 10, id: "lake",  cap: "Al atardecer, Mely ora junto al lago." },
+    { li: 14, id: "court", cap: "¡Otra vez a jugar y a cantar con sus amigos!" },
+    { li: 20, id: "night", cap: "De noche, Mely mira las estrellas y sabe que Dios la escucha." },
+    { li: 24, id: "party", cap: "¡Todos celebran juntos con alegría!" },
+  ];
+
+  const audio = document.getElementById("audio");
+  const playBtn = document.getElementById("playBtn");
+  const stage = document.getElementById("stage");
+  const cap = document.getElementById("cap");
+  const subEl = document.getElementById("sub");
+  const secEl = document.getElementById("sec");
+  const toastEl = document.getElementById("toast");
+
+  const AUDIO_START = 0; // la canción empieza desde 0
+  let offset = 0;        // ajuste de sincronía en segundos (teclas [ y ])
+  let markIdx = 0;       // próxima línea a marcar con M
+
+  function sceneT(i) { const s = SCENES[i]; return s.li !== undefined ? LINES[s.li].t : s.t; }
+  let audioActive = false, audioFailed = false;
+  function hasAudio() { return audioActive; }
+
+  // Reloj de respaldo sin audio
+  let demoStart = 0, demoPlaying = false, demoOffset = 0, demoRaf = null;
+  function rawTime() {
+    if (hasAudio()) return Math.max(0, audio.currentTime - AUDIO_START);
+    return demoPlaying ? demoOffset + (performance.now() - demoStart) / 1000 : demoOffset;
+  }
+  function currentTime() { return rawTime() + offset; }
+
+  let lastLine = -2, lastScene = -1;
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toast.h);
+    toast.h = setTimeout(() => toastEl.classList.remove("show"), 1400);
+  }
+
+  function spawnNote() {
+    const n = document.createElement("div");
+    n.className = "note";
+    n.textContent = ["🎵", "🎶", "✨", "⭐"][Math.floor(Math.random() * 4)];
+    n.style.left = (30 + Math.random() * 40) + "%";
+    n.style.bottom = "150px";
+    stage.appendChild(n);
+    setTimeout(() => n.remove(), 2300);
+  }
+
+  function spawnConfetti() {
+    const colors = ["#ff6b6b", "#ffd166", "#06d6a0", "#118ab2", "#ef476f", "#8338ec"];
+    for (let i = 0; i < 30; i++) {
+      const c = document.createElement("div");
+      c.className = "confetti";
+      c.style.left = Math.random() * 100 + "%";
+      c.style.background = colors[i % colors.length];
+      c.style.animationDelay = (Math.random() * 1.2) + "s";
+      stage.appendChild(c);
+      setTimeout(() => c.remove(), 4000);
+    }
+  }
+
+  function update() {
+    const t = currentTime();
+
+    // Escena
+    let sIdx = 0;
+    for (let i = 0; i < SCENES.length; i++) if (sceneT(i) <= t) sIdx = i;
+    if (sIdx !== lastScene) {
+      const first = lastScene === -1;
+      lastScene = sIdx;
+      stage.dataset.scene = SCENES[sIdx].id;
+      cap.style.opacity = 0;
+      setTimeout(() => { cap.textContent = SCENES[sIdx].cap; cap.style.opacity = 1; }, first ? 0 : 400);
+      if (SCENES[sIdx].id === "party" && !first) spawnConfetti();
+    }
+
+    // Subtítulo
+    let lIdx = -1;
+    for (let i = 0; i < LINES.length; i++) if (LINES[i].t <= t) lIdx = i;
+    const last = LINES.length - 1;
+    const showingEnd = lIdx === last && t > LINES[last].t + 6;
+    const effIdx = showingEnd ? -1 : lIdx;
+    if (effIdx !== lastLine) {
+      lastLine = effIdx;
+      if (effIdx >= 0) {
+        subEl.textContent = LINES[effIdx].text;
+        subEl.classList.remove("pop"); void subEl.offsetWidth; subEl.classList.add("pop");
+        // sección: la última etiqueta que aparezca hasta esta línea
+        let sec = "";
+        for (let i = 0; i <= effIdx; i++) if (LINES[i].s) sec = LINES[i].s;
+        secEl.textContent = sec;
+        if (LINES[effIdx].chorus) spawnNote();
+      } else {
+        subEl.textContent = showingEnd ? "" : "🎵 Le hablo a Dios 🎵";
+        secEl.textContent = "";
+      }
+    }
+  }
+
+  function loop() {
+    update();
+    if (demoPlaying || (hasAudio() && !audio.paused)) demoRaf = requestAnimationFrame(loop);
+    else demoRaf = null;
+  }
+
+  function setPlaying(p) {
+    stage.classList.toggle("playing", p);
+    playBtn.textContent = p ? "⏸ Pausa" : "▶ Reproducir";
+  }
+
+  playBtn.addEventListener("click", () => {
+    if (!audioFailed && audio.src) {
+      if (audio.paused) {
+        // Empieza directo en la primera línea de la letra
+        if (audio.readyState >= 1 && audio.currentTime < AUDIO_START) audio.currentTime = AUDIO_START;
+        audioActive = true;
+        update();
+        audio.play().catch(() => {
+          audioFailed = true;
+          audioActive = false;
+          demoOffset = 0;
+          demoStart = performance.now();
+          demoPlaying = true;
+          setPlaying(true);
+          if (!demoRaf) demoRaf = requestAnimationFrame(loop);
+        });
+      } else audio.pause();
+    } else if (demoPlaying) {
+      demoOffset = rawTime();
+      demoPlaying = false;
+      setPlaying(false);
+    } else {
+      demoStart = performance.now();
+      demoPlaying = true;
+      setPlaying(true);
+      if (!demoRaf) demoRaf = requestAnimationFrame(loop);
+    }
+  });
+
+  audio.addEventListener("play", () => { setPlaying(true); if (!demoRaf) demoRaf = requestAnimationFrame(loop); });
+  audio.addEventListener("pause", () => setPlaying(false));
+  audio.addEventListener("ended", () => setPlaying(false));
+  audio.addEventListener("playing", () => { audioActive = true; });
+  audio.addEventListener("error", () => { audioFailed = true; audioActive = false; });
+  audio.addEventListener("loadedmetadata", () => {
+    if (audio.currentTime < AUDIO_START) audio.currentTime = AUDIO_START;
+  });
+
+  // Teclas de sincronía
+  document.addEventListener("keydown", (e) => {
+    if (e.target && e.target.tagName === "INPUT") return;
+    if (e.key === "[") { offset -= 0.5; toast(`Sincronía: ${offset.toFixed(1)} s`); lastLine = -2; update(); }
+    else if (e.key === "]") { offset += 0.5; toast(`Sincronía: ${offset.toFixed(1)} s`); lastLine = -2; update(); }
+    else if (e.key === "m" || e.key === "M") {
+      if (markIdx < LINES.length) {
+        LINES[markIdx].t = Math.round(currentTime() * 10) / 10;
+        toast(`Línea ${markIdx + 1} marcada en ${LINES[markIdx].t.toFixed(1)} s`);
+        markIdx++;
+        lastLine = -2; update();
+      } else toast("Todas las líneas están marcadas");
+    }
+    else if (e.key === "c" || e.key === "C") {
+      const txt = LINES.map(l => `${l.t.toFixed(1)}  ${l.text}`).join("\n");
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("Tiempos copiados"), () => toast("No pude copiar"));
+      console.log(txt);
+    }
+  });
+
+  update();
+</script>
+</body>
+</html>
